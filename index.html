@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="ms">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#083c80">
+<meta name="description" content="MySemester - Student Academic Management System & Dashboard">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="assets/style.css">
+<title>Dashboard MySemester • Pengurusan Akademik</title>
+<script src="config.js"></script>
+
+<style id="role-test-styles">
+.role-matrix-wrap{overflow:auto;margin:12px 0;border:1px solid #dbe4ef;border-radius:10px}
+.role-matrix{width:100%;border-collapse:collapse;min-width:680px}
+.role-matrix th,.role-matrix td{padding:9px 11px;border-bottom:1px solid #e7edf5;text-align:center;font-size:12.5px}
+.role-matrix th:first-child,.role-matrix td:first-child{text-align:left;min-width:230px}
+.role-matrix th{background:#f8fafc;color:#244568;position:sticky;top:0;font-weight:700}
+.role-matrix .perm-group td{background:#edf3fa;color:#173b65;font-weight:700;text-align:left}
+.role-matrix input[type=checkbox]{width:16px;height:16px;accent-color:#0c4da2;cursor:pointer}
+.matrix-actions,.test-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.test-console{margin-top:16px;border:1px solid #dbe4ef;border-radius:12px;padding:16px;background:#fff}
+.test-console textarea{width:100%;font-family:ui-monospace,monospace;min-height:100px}
+.test-console pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#10243b;color:#e9f2ff;border-radius:8px;padding:12px;max-height:240px;overflow:auto;font-size:12px}
+.test-meta{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.test-meta span{background:#edf3fa;border-radius:20px;padding:4px 9px;font-size:11.5px}
+.test-audit{max-height:220px;overflow:auto}.test-audit-item{padding:7px 0;border-bottom:1px solid #e7edf5;font-size:12px}
+.test-audit-item small{display:block;color:#60758e}
+</style>
+</head>
+<body>
+
+<div class="app-layout" id="appLayout">
+  <!-- Topbar Header (Deep Royal Blue matching JPPI dashboard) -->
+  <header class="app-header">
+    <div class="header-left">
+      <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Buka menu navigasi" type="button">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </button>
+      <div class="brand">
+        <span class="brand-icon">🎓</span>
+        <div class="brand-text">
+          <b>Dashboard MySemester</b>
+          <small id="headerSubtitle">Sistem Pengurusan Akademik Pelajar</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center Interactive Search Bar -->
+    <div class="header-search">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input type="search" id="globalSearch" placeholder="Cari kelas, subjek, jadual, tugasan atau sumber..." autocomplete="off">
+      <span class="search-shortcut">⌘K</span>
+    </div>
+
+    <!-- Right Profile & Actions -->
+    <div class="header-right">
+      <div class="session-badge" id="currentSessionBadge">
+        <span class="badge-label">Tahun Semasa</span>
+        <strong id="sessionBadgeYear">2026/2027</strong>
+      </div>
+      <div class="user-profile-badge" id="userProfileBadge">
+        <div class="user-avatar" id="headerAvatar">M</div>
+        <div class="user-info">
+          <span class="user-name" id="headerUserName">Mohamad Haafizee</span>
+          <span class="user-role-chip" id="headerUserRole">PENTADBIR</span>
+        </div>
+      </div>
+      <button id="logoutBtn" class="header-logout-btn" type="button">Keluar</button>
+      <div id="profile" class="profile hidden"></div>
+    </div>
+  </header>
+
+  <!-- App Body Container: Sidebar + Main Content -->
+  <div class="app-body">
+    <!-- Left Sidebar Navigation -->
+    <aside class="app-sidebar" id="appSidebar">
+      <nav class="sidebar-nav" id="mainSidebarNav" aria-label="Navigasi Utama">
+        <div class="nav-section-title">NAVIGASI UTAMA</div>
+        <button class="sidebar-link active" data-nav="overview" type="button">
+          <span class="nav-icon">🏠</span>
+          <span class="nav-label">Utama</span>
+        </button>
+        <button class="sidebar-link" data-nav="classes" type="button">
+          <span class="nav-icon">🏫</span>
+          <span class="nav-label">Pengurusan Kelas</span>
+        </button>
+        <button class="sidebar-link" data-nav="schedule" type="button">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Jadual Kuliah</span>
+        </button>
+        <button class="sidebar-link" data-nav="assignments" type="button">
+          <span class="nav-icon">💡</span>
+          <span class="nav-label">Tugasan PB</span>
+        </button>
+        <button class="sidebar-link" data-nav="calendar" type="button">
+          <span class="nav-icon">📅</span>
+          <span class="nav-label">Kalendar &amp; Takwim</span>
+        </button>
+        <button class="sidebar-link" data-nav="resources" type="button">
+          <span class="nav-icon">📚</span>
+          <span class="nav-label">Nota &amp; Sumber</span>
+        </button>
+        <button class="sidebar-link hidden" data-nav="subjects" type="button">
+          <span class="nav-icon">🧩</span>
+          <span class="nav-label">Tetapan Subjek</span>
+        </button>
+
+        <div class="nav-section-title">PENTADBIRAN &amp; ALAT</div>
+        <button class="sidebar-link" data-nav="preview" type="button">
+          <span class="nav-icon">🧪</span>
+          <span class="nav-label">Makmal Peranan</span>
+        </button>
+        <button class="sidebar-link" data-nav="users" type="button">
+          <span class="nav-icon">👥</span>
+          <span class="nav-label">Pengguna &amp; Ahli</span>
+        </button>
+        <button class="sidebar-link" data-nav="data" type="button">
+          <span class="nav-icon">🗄️</span>
+          <span class="nav-label">Pengurusan Data (CRUD)</span>
+        </button>
+        <button class="sidebar-link" data-nav="guide" type="button">
+          <span class="nav-icon">📖</span>
+          <span class="nav-label">Panduan Sistem</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-indicator">
+          <span class="status-dot online"></span>
+          <span class="status-text">Fast Cache Aktif • Online</span>
+        </div>
+        <small>© 2026 MySemester • IPGKTHO</small>
+      </div>
+    </aside>
+
+    <!-- Overlay backdrop for mobile drawer -->
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <!-- Main Content Area (Full in-page, scrollable) -->
+    <main class="app-main" id="appMain">
+      <!-- 1. LOGIN VIEW (Shown before authentication) -->
+      <section id="loginView" class="login-viewport">
+        <div class="login-card">
+          <div class="login-hero-icon">🎓</div>
+          <h1>Urus semester anda dengan lebih teratur.</h1>
+          <p>Jadual kuliah, tugasan PB, nota pembelajaran dan takwim dalam satu dashboard pintar.</p>
+          
+          <form id="manualLoginForm" class="form-stack manual-login-form">
+            <label>Nama pengguna
+              <input id="manualUsername" name="username" autocomplete="username" required value="devadmin" placeholder="Nama pengguna pembangunan">
+            </label>
+            <label>Kata laluan
+              <input id="manualPassword" name="password" type="password" autocomplete="current-password" required placeholder="Kata laluan pembangunan">
+            </label>
+            <button id="manualLoginBtn" class="btn" type="submit" style="width:100%;margin-top:6px">Log masuk Development Mode</button>
+            <p class="muted small" style="margin-top:10px;text-align:center">Akaun Development Mode sahaja. Gunakan akaun devadmin untuk capaian pantas.</p>
+          </form>
+
+          <div id="googleLoginPanel" class="google-login-panel hidden" style="margin-top:14px">
+            <div id="googleButton" style="display:flex;justify-content:center"></div>
+            <p class="muted small" style="margin-top:8px">Log masuk menggunakan Google Workspace untuk penggunaan rasmi.</p>
+          </div>
+          <div id="loginError" class="error"></div>
+        </div>
+      </section>
+
+      <!-- 2. AUTHENTICATED WORKSPACE VIEW -->
+      <section id="appView" class="hidden">
+        <!-- Filter & Control Toolbar (Matching JPPI Dashboard Row) -->
+        <section class="filter-toolbar" id="filterToolbar">
+          <div class="filter-group">
+            <span class="filter-home-btn" id="filterHomeBtn" title="Kembali ke Utama">🏠</span>
+            <div class="filter-pill-wrap">
+              <label class="filter-item">
+                <span class="filter-label">Tahun:</span>
+                <select id="filterYearSelect" class="filter-select">
+                  <option value="all">Semua</option>
+                  <option value="2026" selected>2026</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                </select>
+              </label>
+              <label class="filter-item">
+                <span class="filter-label">Kelas:</span>
+                <select id="filterClassSelect" class="filter-select">
+                  <option value="all">Semua</option>
+                </select>
+              </label>
+              <label class="filter-item">
+                <span class="filter-label">Semester:</span>
+                <select id="filterSemesterSelect" class="filter-select">
+                  <option value="all">Semua</option>
+                </select>
+              </label>
+              <label class="filter-item">
+                <span class="filter-label">Kategori:</span>
+                <select id="filterCategorySelect" class="filter-select">
+                  <option value="all">Semua</option>
+                  <option value="academic">Akademik</option>
+                  <option value="pb">Penilaian PB</option>
+                  <option value="kokurikulum">Kokurikulum</option>
+                </select>
+              </label>
+              <label class="filter-item">
+                <span class="filter-label">Pencapaian:</span>
+                <select id="filterStatusSelect" class="filter-select">
+                  <option value="all">Semua</option>
+                  <option value="active">Aktif</option>
+                  <option value="completed">Selesai</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="filter-actions">
+            <button id="clearCacheBtn" class="btn btn-sm btn-outline" type="button" title="Gunakan selepas kemas kini Google Sheets manual">🧹 Kosongkan cache</button>
+            <button id="refreshAdminBtn" class="btn btn-sm btn-primary" type="button">⚡ Muat semula</button>
+          </div>
+        </section>
+
+        <!-- Loading Indicator -->
+        <div id="adminLoading" class="panel hidden">Memuatkan data pentadbiran...</div>
+
+        <!-- Hidden compat bridges for existing views -->
+        <div id="adminView" class="hidden">
+          <div id="adminWelcomeName" class="hidden"></div>
+          <div id="adminWelcomeEmail" class="hidden"></div>
+          <div id="adminStats" class="hidden"></div>
+          <nav class="admin-tabs hidden">
+            <button class="admin-tab active" data-admin-tab="classes"></button>
+            <button class="admin-tab" data-admin-tab="preview"></button>
+            <button class="admin-tab" data-admin-tab="users"></button>
+            <button class="admin-tab" data-admin-tab="data"></button>
+            <button class="admin-tab" data-admin-tab="guide"></button>
+          </nav>
+        </div>
+
+        <div id="studentView" class="hidden">
+          <div id="welcomeName" class="hidden"></div>
+          <div id="welcomeEmail" class="hidden"></div>
+          <button id="logoutBtnStudent" class="hidden"></button>
+          <div id="noClass" class="panel hidden">
+            <h2>Sertai kelas</h2>
+            <p class="muted">Masukkan kod jemputan yang diberikan oleh wakil kelas atau pensyarah.</p>
+            <div class="btn-row"><input id="inviteCode" placeholder="Contoh: C1A2B3C4"><button id="joinBtn" class="btn">Sertai kelas</button></div>
+            <div id="joinMessage" class="small"></div>
+          </div>
+          <div id="classArea" class="hidden">
+            <div id="className" class="hidden"></div>
+            <div id="classCode" class="hidden"></div>
+            <select id="classSwitch" class="hidden"></select>
+            <select id="semesterSwitch" class="hidden"></select>
+            <span id="rolePill" class="hidden"></span>
+          </div>
+        </div>
+
+        <!-- =============================================================
+             PANEL 1: UTAMA (ANALYTICAL DASHBOARD MATCHING JPPI IMAGE)
+             ============================================================= -->
+        <section id="panel-overview" class="app-panel">
+          <div id="studentConfigNotice" class="panel hidden" role="status">
+            <strong>Data subjek belum tersedia untuk semester ini.</strong>
+            <p class="muted small">KO atau Pentadbir kelas perlu menetapkan pensyarah, PIC dan jadual aktif bagi subjek sebelum jadual, PB, nota dan sumber dipaparkan kepada pelajar.</p>
+          </div>
+          <!-- KPI Summary 6-Card Row (Matching Image) -->
+          <div class="kpi-dashboard-row" id="kpiDashboardRow">
+            <article class="kpi-card" data-kpi="classes">
+              <div class="kpi-icon-box blue">💡</div>
+              <div class="kpi-info">
+                <div class="kpi-top-row">
+                  <span class="kpi-number" id="kpiClassesVal">—</span>
+                  <span class="kpi-badge hidden"></span>
+                </div>
+                <div class="kpi-title">Kelas</div>
+                <div class="kpi-subtext">kelas disertai</div>
+              </div>
+            </article>
+
+            <article class="kpi-card" data-kpi="assignments">
+              <div class="kpi-icon-box amber">📝</div>
+              <div class="kpi-info">
+                <div class="kpi-top-row">
+                  <span class="kpi-number" id="kpiPbVal">—</span>
+                  <span class="kpi-badge hidden"></span>
+                </div>
+                <div class="kpi-title">Tugasan PB</div>
+                <div class="kpi-subtext">dalam semester dipilih</div>
+              </div>
+            </article>
+
+            <article class="kpi-card" data-kpi="schedules">
+              <div class="kpi-icon-box rose">📚</div>
+              <div class="kpi-info">
+                <div class="kpi-top-row">
+                  <span class="kpi-number" id="kpiSessVal">—</span>
+                  <span class="kpi-badge hidden"></span>
+                </div>
+                <div class="kpi-title">Sesi kuliah</div>
+                <div class="kpi-subtext">dalam semester dipilih</div>
+              </div>
+            </article>
+
+            <article class="kpi-card" data-kpi="members">
+              <div class="kpi-icon-box green">🏫</div>
+              <div class="kpi-info">
+                <div class="kpi-top-row">
+                  <span class="kpi-number" id="kpiMembersVal">—</span>
+                </div>
+                <div class="kpi-title">Ahli kelas</div>
+                <div class="kpi-subtext">kelas semasa</div>
+              </div>
+            </article>
+
+            <article class="kpi-card" data-kpi="events">
+              <div class="kpi-icon-box orange">🤝</div>
+              <div class="kpi-info">
+                <div class="kpi-top-row">
+                  <span class="kpi-number" id="kpiEventsVal">—</span>
+                </div>
+                <div class="kpi-title">Tarikh penting</div>
+                <div class="kpi-subtext">dalam semester dipilih</div>
+              </div>
+            </article>
+
+            <article class="kpi-card" data-kpi="resources">
+              <div class="kpi-icon-box purple">📄</div>
+              <div class="kpi-info">
+                <div class="kpi-top-row">
+                  <span class="kpi-number" id="kpiResVal">—</span>
+                  <span class="kpi-badge hidden"></span>
+                </div>
+                <div class="kpi-title">Nota &amp; sumber</div>
+                <div class="kpi-subtext">dalam semester dipilih</div>
+              </div>
+            </article>
+          </div>
+
+          <!-- Charts Grid Row 1 (Trend, Donut, Top 5) -->
+          <div class="charts-grid-row1">
+            <!-- Card 1: Trend Tahunan (Line Chart) -->
+            <section class="dashboard-card" id="trendChartCard">
+              <div class="card-header-bar">
+                <h3>Ringkasan semester</h3>
+                <div class="trend-legend">
+                  <span class="legend-pill"><span class="legend-dot blue"></span> Inovasi</span>
+                  <span class="legend-pill"><span class="legend-dot amber"></span> Penyelidikan</span>
+                  <span class="legend-pill"><span class="legend-dot green"></span> Penerbitan</span>
+                </div>
+              </div>
+              <div class="chart-svg-wrap" id="trendChartWrap">
+                <!-- Dynamically rendered responsive SVG line chart -->
+              </div>
+            </section>
+
+            <!-- Card 2: Inovasi Mengikut Jabatan (Donut Chart) -->
+            <section class="dashboard-card" id="donutChartCard">
+              <div class="card-header-bar">
+                <h3>Kelas dan semester</h3>
+              </div>
+              <div class="donut-widget-body">
+                <div class="donut-svg-box" id="donutSvgBox">
+                  <svg viewBox="0 0 140 140" id="donutSvg"></svg>
+                  <div class="donut-center-label">
+                    <strong id="donutTotalNumber">—</strong>
+                    <small>Jumlah</small>
+                  </div>
+                </div>
+                <div class="donut-legend-list" id="donutLegendList">
+                  <!-- Donut categories list -->
+                </div>
+              </div>
+            </section>
+
+            <!-- Card 3: Top 5 Jabatan (Leaderboard) -->
+            <section class="dashboard-card" id="top5Card">
+              <div class="card-header-bar">
+                <div>
+                  <h3>Tarikh terdekat</h3>
+                  <small>Tugasan dan acara akan datang</small>
+                </div>
+              </div>
+              <div class="ranking-list" id="top5List">
+                <!-- Top 5 ranking items -->
+              </div>
+            </section>
+          </div>
+
+          <!-- Charts Grid Row 2 (Stacked bars, Achievement bars, Resources bars) -->
+          <div class="charts-grid-row2">
+            <!-- Card 4: Output Mengikut Jabatan (Stacked Horizontal Bars) -->
+            <section class="dashboard-card" id="stackedBarCard">
+              <div class="card-header-bar">
+                <h3>Jadual terkini</h3>
+              </div>
+              <div class="stacked-bar-list" id="stackedBarList">
+                <!-- Stacked horizontal progress rows -->
+              </div>
+              <div class="trend-legend" style="margin-top:10px;justify-content:center">
+                <span class="legend-pill"><span class="legend-dot blue"></span> Inovasi</span>
+                <span class="legend-pill"><span class="legend-dot amber"></span> Penyelidikan</span>
+                <span class="legend-pill"><span class="legend-dot green"></span> Penerbitan</span>
+              </div>
+            </section>
+
+            <!-- Card 5: Pencapaian (Golden Vertical Bars) -->
+            <section class="dashboard-card" id="achievementCard">
+              <div class="card-header-bar">
+                <div class="subtab-pill-row">
+                  <span class="eyebrow">KEMAJUAN TUGASAN</span>
+                </div>
+              </div>
+              <div class="column-chart-body" id="achievementColumnBody">
+                <!-- Golden column bars -->
+              </div>
+            </section>
+
+            <!-- Card 6: Kategori Penerbitan (Green Vertical Bars) -->
+            <section class="dashboard-card" id="resourcesCard">
+              <div class="card-header-bar">
+                <div class="subtab-pill-row">
+                  <span class="eyebrow">SUMBER PEMBELAJARAN</span>
+                </div>
+              </div>
+              <div class="column-chart-body" id="resourceColumnBody">
+                <!-- Green column bars -->
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <!-- =============================================================
+             PANEL 2: PENGURUSAN KELAS
+             ============================================================= -->
+        <section id="panel-classes" class="app-panel hidden">
+          <div class="class-admin-heading">
+            <div><span class="eyebrow">PENTADBIRAN AKADEMIK</span><h2>Pengurusan Kelas</h2>
+              <p class="muted">Urus kelas, tetapkan bilangan semester dan konfigurasi ahli melalui panel ringkas.</p></div>
+            <details class="class-create-details">
+              <summary class="btn">＋ Cipta kelas</summary>
+              <form id="createClassForm" class="form-stack">
+                <label>Nama kelas <input id="newClassName" required placeholder="Contoh: Diploma Teknologi Maklumat - Sesi 2026"></label>
+                <div class="two-fields"><label>Program <input id="newClassProgramme" placeholder="Contoh: Diploma Teknologi Maklumat"></label>
+                  <label>Kohort / Sesi <input id="newClassCohort" placeholder="Contoh: Ambilan 2026"></label></div>
+                <div class="two-fields"><label>Institusi <input id="newClassInstitution" placeholder="Contoh: Institut Pendidikan Guru"></label>
+                  <label>Bilangan semester
+                    <input id="newClassSemesterLimit" type="number" min="1" step="1" required value="3">
+                    <small class="muted">Bilangan ini menjadi had semester untuk kelas tersebut.</small>
+                  </label></div>
+                <label>Penerangan <textarea id="newClassDescription" rows="2" placeholder="Penerangan ringkas kelas"></textarea></label>
+                <button class="btn" type="submit">Cipta kelas</button>
+                <div id="createClassMessage" class="small form-message" aria-live="polite"></div>
+              </form>
+            </details>
+          </div>
+          <section class="panel class-list-panel">
+            <div class="section-heading">
+              <div><h2>Kelas berdaftar</h2><p class="muted">Pilih kelas untuk mengurus semester, akses dan pensyarah.</p></div>
+              <label class="class-list-search"><span class="sr-only">Cari kelas</span><input id="adminClassSearch" type="search" placeholder="Cari nama, kod atau kohort"></label>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>Kelas</th><th>Kod</th><th>Status</th><th>Semester</th><th>Ahli</th><th></th></tr></thead><tbody id="adminClassList"></tbody></table>
+            </div>
+            <div class="table-pagination" id="adminClassPagination">
+              <span id="adminClassPageInfo" class="muted small"></span>
+              <div><button id="adminClassPrevPage" class="btn btn-light btn-small" type="button">Sebelum</button>
+                <button id="adminClassNextPage" class="btn btn-light btn-small" type="button">Seterusnya</button></div>
+            </div>
+          </section>
+
+          <!-- Selected Class Detail Area -->
+          <section id="adminClassDetail" class="panel hidden">
+            <div class="section-heading">
+              <div><span class="eyebrow">KELAS DIPILIH</span><h2 id="selectedClassTitle">Kelas</h2><p id="selectedClassMeta" class="muted"></p></div>
+              <div class="class-detail-actions"><span id="selectedClassSemesterProgress" class="class-semester-progress"></span>
+                <button id="previewThisClassBtn" class="btn btn-light btn-small" type="button">Pratonton</button></div>
+            </div>
+            <div class="class-management-sections">
+              <details class="class-management-section">
+                <summary><span>Semester</span><span id="semesterSectionSummary" class="muted small"></span></summary>
+                <div class="class-management-section-body">
+                <div id="semesterList" class="semester-list"></div>
+                <details id="createSemesterDetails" class="class-subform-details">
+                  <summary>＋ Tambah semester</summary>
+                  <form id="createSemesterForm" class="form-stack compact-form">
+                    <label>Nama semester <input id="semesterName" required placeholder="Semester 1"></label>
+                    <div class="two-fields"><label>Sesi akademik <input id="semesterSession" placeholder="2026/2027"></label>
+                      <label>Nombor semester <input id="semesterNumber" type="number" min="1" required value="1"></label></div>
+                    <div class="two-fields"><label>Tarikh mula <input id="semesterStart" type="date"></label><label>Tarikh tamat <input id="semesterEnd" type="date"></label></div>
+                    <button class="btn" type="submit">Simpan semester</button>
+                    <div id="semesterMessage" class="small form-message"></div>
+                  </form>
+                </details>
+                <div class="activate-box"><button id="activateClassBtn" class="btn btn-secondary" disabled>Aktifkan kelas</button><p id="activateClassHint" class="muted small"></p></div>
+                </div>
+              </details>
+              <details class="class-management-section">
+                <summary><span>Akses dan peranan kelas</span><span class="muted small">Jemputan · KO · PIC · Pelajar</span></summary>
+                <div class="class-management-section-body">
+                <form id="createInviteForm" class="form-stack compact-form">
+                  <h3>Kod jemputan kelas</h3>
+                  <p class="muted small">Kod hanya boleh dijana selepas kelas diaktifkan.</p>
+                  <label>Tarikh luput (pilihan) <input id="inviteExpiry" type="date"></label>
+                  <label>Had penggunaan (0 = tanpa had) <input id="inviteMaxUses" type="number" min="0" value="0"></label>
+                  <button id="createInviteBtn" class="btn" type="submit" disabled>Jana kod jemputan</button>
+                  <div id="inviteMessage" class="small form-message" aria-live="polite"></div>
+                </form>
+                <form id="assignRoleForm" class="form-stack compact-form">
+                  <h3>Berikan peranan kelas</h3>
+                  <p class="muted small">Gunakan untuk akaun sedia ada. Pensyarah yang belum log masuk perlu didaftarkan melalui borang pra-daftar.</p>
+                  <label>Emel Google pengguna <input id="assignEmail" type="email" required placeholder="nama@gmail.com"></label>
+                  <label>Peranan
+                    <select id="assignRole"><option value="ko">Class Coordinator (KO)</option><option value="pic">PIC</option><option value="lecturer">Pensyarah (akaun sedia ada)</option><option value="student">Pelajar</option><option value="admin">Pentadbir kelas</option></select>
+                  </label>
+                  <button class="btn btn-light" type="submit">Tetapkan peranan</button>
+                  <div id="assignRoleMessage" class="small form-message"></div>
+                </form>
+                </div>
+              </details>
+              <details class="class-management-section">
+                <summary><span>Direktori pensyarah</span><span class="muted small">Pra-daftar dan pautkan akaun</span></summary>
+                <div class="class-management-section-body">
+                  <h3>Pra-daftar pensyarah</h3>
+                  <p class="muted small">Daftarkan nama dan emel Google dahulu. Pensyarah melengkapkan pautan apabila log masuk menggunakan emel tersebut.</p>
+                  <form id="registerLecturerForm" class="form-stack compact-form">
+                    <label>Nama pensyarah<input id="lecturerFullName" required autocomplete="name"></label>
+                    <label>Emel Google<input id="lecturerEmail" type="email" required autocomplete="email"></label>
+                    <button class="btn btn-light" type="submit">Daftar pensyarah</button>
+                    <div id="lecturerRegistrationMessage" class="small form-message" aria-live="polite"></div>
+                  </form>
+                  <div id="lecturerDirectoryList" class="lecturer-directory-list"></div>
+                </div>
+              </details>
+            </div>
+          </section>
+        </section>
+
+        <section id="panel-subjects" class="app-panel hidden">
+          <div class="panel">
+            <div class="section-heading">
+              <div><h2>Tetapan Subjek, PIC &amp; Pensyarah</h2><p class="muted">KO, Pentadbir kelas atau pensyarah boleh membina tawaran subjek. Pelajar memilih kumpulan dan pensyarah untuk akaun mereka sendiri selepas jadual tersedia.</p></div>
+              <label>Semester <select id="subjectConfigSemester"></select></label>
+            </div>
+            <div id="subjectConfigContext" class="subject-config-context"></div>
+            <div id="subjectConfigStats" class="subject-config-stats"></div>
+            <form id="subjectLinkForm" class="role-lab-form">
+              <label>Tambah subjek sedia ada<select id="subjectLinkSubject" required></select></label>
+              <button class="btn btn-light" type="submit">Pautkan kepada semester</button>
+            </form>
+            <details id="subjectOfferingForm" class="subject-offering-form">
+              <summary>Tambah tawaran subjek / kumpulan</summary>
+              <form class="form-stack compact-form" style="margin-top:12px">
+                <label>Subjek katalog
+                  <select id="subjectOfferingSubject"><option value="">Tambah subjek baharu...</option></select>
+                </label>
+                <div id="newSubjectFields" class="two-fields">
+                  <label>Kod subjek<input id="newSubjectCode" placeholder="Contoh: RBTS7012"></label>
+                  <label>Nama subjek<input id="newSubjectName" placeholder="Contoh: Pedagogi Digital"></label>
+                </div>
+                <div class="two-fields">
+                  <label>Nama tawaran / kumpulan<input id="subjectOfferingName" required placeholder="Contoh: Kumpulan A"></label>
+                  <label>Kredit<input id="newSubjectCredit" type="number" min="0" max="10" value="3"></label>
+                </div>
+                <label>Pensyarah
+                  <select id="subjectOfferingLecturer" required></select>
+                  <small class="muted">Pensyarah hanya boleh mewujudkan tawaran untuk dirinya sendiri.</small>
+                </label>
+                <label>PIC subjek<select id="subjectOfferingPic" required></select></label>
+                <button class="btn" type="submit">Simpan tawaran</button>
+              </form>
+            </details>
+            <div class="subject-config-toolbar">
+              <label for="subjectConfigSearch">Cari pemetaan</label>
+              <input id="subjectConfigSearch" type="search" placeholder="Cari subjek, pensyarah atau PIC">
+            </div>
+            <div id="subjectConfigRows" class="subject-mapping-grid"></div>
+            <p id="subjectConfigMessage" class="small form-message" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <!-- =============================================================
+             PANEL 3: JADUAL KULIAH
+             ============================================================= -->
+        <section id="panel-schedule" class="app-panel hidden">
+          <div class="panel">
+            <div id="studentOfferingSelection" class="student-offering-selection hidden"></div>
+            <div class="section-heading">
+              <div><h2>Jadual Kuliah &amp; Sesi Pembelajaran</h2><p class="muted">Senarai sesi mengikut waktu dan lokasi.</p></div>
+              <button id="scheduleAddBtn" class="btn btn-sm btn-primary" type="button" onclick="$('#sessionFormWrap').toggleAttribute('open')">➕ Tambah sesi</button>
+            </div>
+            <div id="scheduleList"></div>
+          </div>
+          <details id="sessionFormWrap" class="panel"><summary id="sessionFormTitle">➕ Tambah / Kemaskini Sesi Jadual</summary>
+            <form id="sessionForm" class="form-stack" style="margin-top:12px">
+              <label>Subjek <select id="sessSubject" required></select></label>
+              <div class="two-fields"><label>Tarikh <input id="sessDate" type="date" required></label><label>Bilik / pautan <input id="sessRoom" placeholder="Contoh: Bilik Kuliah 3"></label></div>
+              <div class="two-fields"><label>Masa mula <input id="sessStart" type="time" required></label><label>Masa tamat <input id="sessEnd" type="time" required></label></div>
+              <div class="two-fields"><label>Mod <select id="sessMode"><option>Bersemuka</option><option>Dalam talian</option><option>Hibrid</option></select></label><label>Jenis <select id="sessType"><option>Kuliah</option><option>Tutorial</option><option>Amali</option><option>Lain-lain</option></select></label></div>
+              <label id="sessReasonWrap" class="hidden">Sebab perubahan <input id="sessReason" placeholder="Contoh: pindah bilik"></label>
+              <div class="btn-row"><button class="btn" type="submit" id="sessSubmit">Simpan sesi</button><button class="btn btn-light hidden" type="button" id="sessCancel">Batal edit</button></div>
+              <div id="sessMsg" class="small form-message"></div>
+            </form>
+          </details>
+        </section>
+
+        <!-- =============================================================
+             PANEL 4: TUGASAN PENILAIAN BERTERUSAN (PB)
+             ============================================================= -->
+        <section id="panel-assignments" class="app-panel hidden">
+          <div class="panel">
+            <div class="section-heading">
+              <div><h2>Penilaian Berterusan (PB)</h2><p class="muted">Tugasan, kuiz, projek, dan peratusan markah.</p></div>
+              <div class="subject-list-controls">
+                <select id="pbSubjectFilter"></select>
+                <select id="pbStatusFilter"><option value="all">Semua</option><option value="open">Belum siap</option><option value="done">Selesai</option></select>
+                <input id="pbSearch" type="search" placeholder="Cari PB..." aria-label="Cari penilaian PB">
+                <button id="assignmentAddBtn" class="btn btn-sm btn-primary" type="button" onclick="$('#assignmentFormWrap').toggleAttribute('open')">➕ Terbitkan PB</button>
+              </div>
+            </div>
+            <div id="assignmentList"></div>
+          </div>
+          <details id="assignmentFormWrap" class="panel"><summary>➕ Terbitkan PB baharu</summary>
+            <form id="assignmentForm" class="form-stack" style="margin-top:12px">
+              <label>Subjek <select id="pbSubject" required></select></label>
+              <label>Tajuk <input id="pbTitle" required placeholder="Contoh: Penulisan RPH"></label>
+              <div class="two-fields"><label>Kod PB <input id="pbCode" placeholder="PB01"></label><label>Jenis <input id="pbType" placeholder="Penulisan / Projek"></label></div>
+              <div class="two-fields"><label>Pemberat Markah (%) <input id="pbMarks" type="number" min="0" max="100" value="15"></label><label>Kaedah hantar <input id="pbMethod" placeholder="Google Classroom / Portal"></label></div>
+              <div class="two-fields"><label>Tarikh mula <input id="pbStart" type="date"></label><label>Tarikh hantar <input id="pbDue" type="date"></label></div>
+              <label>Penerangan tugasan <textarea id="pbDesc" rows="3"></textarea></label>
+              <button class="btn" type="submit">Terbitkan PB</button>
+              <div id="pbMsg" class="small form-message"></div>
+            </form>
+          </details>
+        </section>
+
+        <!-- =============================================================
+             PANEL 5: KALENDAR & TAKWIM
+             ============================================================= -->
+        <section id="panel-calendar" class="app-panel hidden">
+          <div class="panel">
+            <div class="section-heading">
+              <div><h2>Kalendar &amp; Tarikh Penting</h2><p class="muted">Jadual cuti, takwim akademik, dan tarikh penghantaran.</p></div>
+              <div class="subject-list-controls">
+                <select id="calendarSubjectFilter" aria-label="Tapis kalendar mengikut subjek"><option value="all">Semua subjek</option></select>
+                <input id="calendarSearch" type="search" placeholder="Cari acara..." aria-label="Cari acara kalendar">
+                <button id="eventAddBtn" class="btn btn-sm btn-primary" type="button" onclick="$('#eventFormWrap').toggleAttribute('open')">➕ Tambah acara</button>
+              </div>
+            </div>
+            <div id="calendarList"></div>
+          </div>
+          <details id="eventFormWrap" class="panel"><summary>➕ Tambah acara kalendar</summary>
+            <form id="eventForm" class="form-stack" style="margin-top:12px">
+              <label>Tajuk acara <input id="evTitle" required placeholder="Contoh: Taklimat Praktikum PBS"></label>
+              <div class="two-fields"><label>Kategori <select id="evCategory"><option>academic</option><option>PBS</option><option>Kokurikulum</option><option>Cuti</option><option>Lain-lain</option></select></label><label>Subjek (pilihan) <select id="evSubject"></select></label></div>
+              <div class="two-fields"><label>Tarikh mula <input id="evStart" type="date" required></label><label>Tarikh tamat <input id="evEnd" type="date"></label></div>
+              <label>Penerangan <textarea id="evDesc" rows="2"></textarea></label>
+              <button class="btn" type="submit">Tambah acara</button>
+              <div id="evMsg" class="small form-message"></div>
+            </form>
+          </details>
+        </section>
+
+        <!-- =============================================================
+             PANEL 6: NOTA & SUMBER
+             ============================================================= -->
+        <section id="panel-resources" class="app-panel hidden">
+          <div class="panel">
+            <div class="section-heading">
+              <div><h2>Nota &amp; Sumber Pembelajaran</h2><p class="muted">Pautan slaid kuliah, artikel rujukan, dan panduan subjek.</p></div>
+              <div class="subject-list-controls">
+                <select id="resourceSubjectFilter" aria-label="Tapis sumber mengikut subjek"><option value="all">Semua subjek</option></select>
+                <input id="resourceSearch" type="search" placeholder="Cari sumber..." aria-label="Cari nota dan sumber">
+              </div>
+            </div>
+            <div id="resourcesList" class="role-lab-records"></div>
+          </div>
+        </section>
+
+        <!-- =============================================================
+             PANEL 7: MAKMAL PERANAN (ROLE SANDBOX & PERMISSION MATRIX)
+             ============================================================= -->
+        <section id="panel-preview" class="app-panel hidden">
+          <section id="roleLabWorkspace" class="role-lab panel hidden" aria-labelledby="roleLabTitle">
+            <details id="roleLabSessionDetails" class="role-lab-session">
+              <summary>
+                <span class="role-lab-kicker"><span class="role-lab-live-dot"></span> SIMULATED ROLE WORKSPACE</span>
+                <span class="role-lab-summary-title"><strong id="roleLabTitle">Dashboard peranan</strong><span id="roleLabRolePill" class="role-lab-role-pill"></span></span>
+                <span class="role-lab-details-toggle">Butiran sesi</span>
+              </summary>
+              <div class="role-lab-session-body">
+                <p id="roleLabDescription"></p>
+                <div class="role-lab-session-meta"><span id="previewInfo"></span><small id="previewAccountId"></small></div>
+                <div class="role-lab-heading-actions">
+                  <span id="roleLabSandboxState" class="role-lab-sandbox-pill">SANDBOX</span>
+                  <button id="roleLabSandboxToggleBtn" class="btn btn-light btn-small" type="button">Matikan sandbox</button>
+                  <label class="role-lab-switch">Tukar peranan<select id="previewRoleSwitch"></select></label>
+                  <button id="exitPreviewBtn" class="btn role-lab-exit-btn" type="button">Tamatkan sesi ujian</button>
+                </div>
+              </div>
+            </details>
+            <div id="roleLabStats" class="role-lab-stats"></div>
+            <div id="roleLabStudentOfferings" class="student-offering-selection hidden"></div>
+            <nav id="roleLabNav" class="role-lab-nav" aria-label="Menu ruang kerja peranan"></nav>
+            <div id="roleLabContent" class="role-lab-content"></div>
+            <section class="role-lab-card role-lab-audit-panel">
+              <div class="role-lab-card-head">
+                <div><h3>Log aktiviti sesi</h3><p class="muted small">Tindakan sandbox oleh akaun sementara.</p></div>
+                <button id="roleLabAuditRefreshBtn" type="button" class="btn btn-light btn-small">Muat semula log</button>
+              </div>
+              <div id="roleLabAudit" class="test-audit muted small">Belum ada aktiviti.</div>
+            </section>
+            <div class="role-lab-footer"><span id="roleLabWriteModeHint">Perubahan disimpan dalam sandbox sesi ujian ini.</span><button id="roleLabRefreshBtn" type="button" class="btn btn-light btn-small">Muat semula data</button></div>
+          </section>
+
+          <section class="role-test-panel panel" id="admin-panel-preview" aria-labelledby="roleTestTitle">
+            <div class="section-heading">
+              <div><span class="eyebrow">PERSEKITARAN UJIAN</span><h2 id="roleTestTitle">Uji sistem sebagai peranan</h2><p class="muted">Cipta sesi sementara untuk menyemak paparan dan fungsi mengikut peranan. Data ujian diasingkan daripada data produksi.</p></div>
+            </div>
+            <div class="role-test-form">
+              <label>Kelas untuk diuji <select id="previewClass"></select></label>
+              <fieldset class="role-test-role-fieldset">
+                <legend>Pilih peranan</legend>
+                <div id="roleCards" class="role-cards"></div>
+              </fieldset>
+              <button id="startPreviewBtn" class="btn" type="button">Cipta akaun sementara &amp; mulakan ujian</button>
+              <div id="previewMessage" class="small form-message" aria-live="polite"></div>
+            </div>
+            <div class="role-test-history">
+              <div class="role-lab-card-head"><div><h3>Sejarah sesi ujian</h3><p class="muted small">Semak log atau tamatkan sesi sementara yang masih aktif.</p></div></div>
+              <div id="roleTestHistory" class="test-audit muted small">Belum ada sesi ujian dipaparkan.</div>
+            </div>
+          </section>
+
+          <details id="rolePermissionSettings" class="role-permission-settings panel">
+            <summary><span><strong>Fungsi / Kebenaran</strong><small>Urus tetapan akses bagi setiap peranan</small></span><span class="role-permission-toggle">Papar matriks</span></summary>
+            <div class="role-permission-content">
+              <div class="section-heading">
+                <div><h3>Matriks kebenaran</h3><p class="muted small">Perubahan pada matriks akan mempengaruhi capaian peranan.</p></div>
+                <div class="matrix-actions">
+                  <button id="matrixReloadBtn" class="btn btn-light btn-small" type="button">Muat semula</button>
+                  <button id="matrixSaveBtn" class="btn btn-small" type="button">Simpan matriks</button>
+                </div>
+              </div>
+              <div id="matrixMessage" class="small form-message" aria-live="polite"></div>
+              <div class="role-matrix-wrap">
+                <table class="role-matrix">
+                  <thead><tr><th>Fungsi / Kebenaran</th><th>Student</th><th>PIC</th><th>Lecturer</th><th>KO</th><th>Class Admin</th><th>System Admin</th></tr></thead>
+                  <tbody id="permMatrix"><tr><td colspan="7">Matriks kebenaran akan dimuatkan apabila dibuka.</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </details>
+
+          <!-- Maintenance Diagnostic Console -->
+          <details id="previewTestConsole" class="test-console hidden">
+            <summary>Diagnostik API lanjutan (Penyelenggaraan)</summary>
+            <div class="section-heading" style="margin-top:10px"><div><h3>Panel ujian API</h3></div><button id="refreshTestAuditBtn" class="btn btn-light btn-small" type="button">Muat semula</button></div>
+            <div class="test-meta"><span id="testRoleMeta"></span><span id="testAccountMeta"></span><span id="testExpiryMeta"></span></div>
+            <div class="form-stack">
+              <label>Fungsi:
+                <select id="previewTestAction">
+                  <option value="roleTestContext">Muat konteks kelas</option>
+                  <option value="listSchedules">Lihat jadual</option>
+                  <option value="createScheduleSession">Tambah sesi jadual</option>
+                  <option value="listAssignments">Lihat PB</option>
+                  <option value="createAssignment">Cipta PB</option>
+                </select>
+              </label>
+              <label>Payload (JSON): <textarea id="previewTestPayload">{}</textarea></label>
+              <div class="test-actions">
+                <button id="runPreviewTestBtn" class="btn" type="button">Jalankan ujian</button>
+                <button id="fillTestPayloadBtn" class="btn btn-light" type="button">Isi contoh data</button>
+                <button id="clearTestSandboxBtn" class="btn btn-light" type="button">Kosongkan sandbox sesi</button>
+              </div>
+              <div id="previewTestResult" class="small form-message" aria-live="polite"></div>
+              <pre id="previewTestOutput">Keputusan ujian akan dipaparkan di sini.</pre>
+            </div>
+            <div id="previewTestAudit" class="test-audit muted small">Tiada aktiviti.</div>
+          </details>
+        </section>
+
+        <!-- =============================================================
+             PANEL 8: PENGGUNA & AHLI
+             ============================================================= -->
+        <section id="panel-users" class="app-panel hidden">
+          <div class="panel" id="admin-panel-users">
+            <h2>Pengurusan Pengguna</h2>
+            <p class="muted">Pengguna yang berdaftar dan keahlian kohort.</p>
+            <div class="table-wrap">
+              <table><thead><tr><th>Nama</th><th>Emel</th><th>Status akaun</th><th>Log masuk terakhir</th></tr></thead><tbody id="adminUserList"></tbody></table>
+            </div>
+          </div>
+        </section>
+
+        <!-- =============================================================
+             PANEL 9: PENGURUSAN DATA CRUD
+             ============================================================= -->
+        <section id="panel-data" class="app-panel hidden">
+          <div class="panel" id="admin-panel-data">
+            <div class="section-heading">
+              <div><span class="eyebrow">SYSTEM ADMIN CRUD</span><h2>Pengurusan Data Database MySemester</h2><p class="muted">CRUD penuh merentas jadual operasi Google Sheets.</p></div>
+              <button id="adminDataRefresh" class="btn btn-light btn-small" type="button">Muat semula</button>
+            </div>
+            <div class="two-fields">
+              <label>Jadual database
+                <select id="adminDataTable">
+                  <option>Users</option><option>UserRoles</option><option>Classes</option><option>ClassMembers</option>
+                  <option>ClassInvitations</option><option>LecturerDirectory</option><option>Semesters</option><option>Subjects</option><option>SemesterSubjects</option><option>StudentSemesterSubjects</option>
+                  <option>ScheduleSeries</option><option>ClassSessions</option><option>ScheduleChangeRequests</option>
+                  <option>ScheduleHistory</option><option>Assignments</option><option>AssignmentResources</option>
+                  <option>AssignmentHistory</option><option>StudentAssignmentProgress</option><option>AssignmentChecklists</option>
+                  <option>SubmissionRecords</option><option>Folders</option><option>Resources</option><option>CalendarEvents</option>
+                  <option>Notifications</option><option>NotificationPreferences</option><option>PersonalTasks</option><option>PersonalNotes</option>
+                </select>
+              </label>
+              <label>Carian rekod <input id="adminDataSearch" placeholder="Cari ID, nama, emel atau data"></label>
+            </div>
+            <div class="btn-row" style="margin:12px 0">
+              <button id="adminDataLoad" class="btn btn-light" type="button">Papar rekod</button>
+              <button id="adminDataNew" class="btn" type="button">Rekod baharu</button>
+              <span id="adminDataCount" class="muted small"></span>
+            </div>
+            <div class="table-wrap">
+              <table><thead><tr><th>ID</th><th>Ringkasan</th><th>Tindakan</th></tr></thead><tbody id="adminDataList"><tr><td colspan="3" class="muted">Pilih jadual dan tekan Papar rekod.</td></tr></tbody></table>
+            </div>
+          </div>
+          <div class="panel" style="margin-top:14px">
+            <div class="section-heading">
+              <div><h3>Editor rekod JSON</h3><p id="adminDataEditorHint" class="muted small">Pilih rekod atau cipta baharu.</p></div>
+              <span id="adminDataMode" class="pill">Tiada pilihan</span>
+            </div>
+            <label>JSON: <textarea id="adminDataJson" rows="12" spellcheck="false" placeholder='{"id":"..."}'></textarea></label>
+            <div class="btn-row" style="margin-top:10px">
+              <button id="adminDataSave" class="btn" type="button">Simpan rekod</button>
+              <button id="adminDataDelete" class="btn btn-danger" type="button" disabled>Padam rekod</button>
+              <button id="adminDataClear" class="btn btn-light" type="button">Kosongkan editor</button>
+            </div>
+            <p id="adminDataMessage" class="small form-message" aria-live="polite"></p>
+          </div>
+        </section>
+
+        <!-- =============================================================
+             PANEL 10: PANDUAN SISTEM
+             ============================================================= -->
+        <section id="panel-guide" class="app-panel hidden">
+          <div class="panel" id="admin-panel-guide">
+            <h2>Aliran Kerja &amp; Panduan Pentadbir</h2>
+            <ol class="admin-guide">
+              <li><strong>Cipta kelas:</strong> Daftarkan kohort atau kumpulan pelajar bagi sesi semasa.</li>
+              <li><strong>Tetapkan bilangan semester:</strong> Pilih had ketika mencipta kelas, kemudian tambah semester bernombor mengikut turutan.</li>
+              <li><strong>Aktifkan kelas:</strong> Kelas boleh diaktifkan selepas semua semester hingga had yang ditetapkan direkodkan.</li>
+              <li><strong>Jana kod jemputan:</strong> Salin kod untuk diedarkan kepada pelajar bagi kemasukan kelas pantas.</li>
+              <li><strong>Pra-daftar pensyarah:</strong> Simpan nama dan emel Google; pautan akaun dibuat apabila pensyarah log masuk.</li>
+              <li><strong>Cipta tawaran dan jadual subjek:</strong> KO/Class Admin atau pensyarah tetapkan kumpulan, pensyarah dan PIC sebelum menyediakan jadual.</li>
+              <li><strong>Pilihan pelajar:</strong> Setiap pelajar pilih tawaran bagi setiap subjek; jadual dan bahan dipaparkan mengikut pilihan individu.</li>
+              <li><strong>Matriks Kebenaran &amp; Sandbox:</strong> Gunakan tab Makmal Peranan untuk menguji simulasi pelajar atau pensyarah.</li>
+            </ol>
+            <p class="muted small">Jika anda mengedit Google Sheets secara manual, tekan butang <b>🧹 Kosongkan cache</b> di bahagian atas supaya perubahan dikemaskini serta-merta.</p>
+          </div>
+        </section>
+
+        <!-- Hidden compat bridges for original student tabs -->
+        <div id="student-tab-overview" class="hidden"><div id="overviewStats"></div><div id="overviewUpcoming"></div><div id="overviewSubjects"></div></div>
+        <div id="student-tab-schedule" class="hidden"></div>
+        <div id="student-tab-assignments" class="hidden"></div>
+        <div id="student-tab-calendar" class="hidden"></div>
+        <div id="adminContent" class="hidden"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Mobile Bottom App Bar (Sticky app navigation on smartphones) -->
+  <nav class="mobile-bottom-nav" id="mobileBottomNav">
+    <button class="mobile-nav-btn active" data-nav="overview" type="button">
+      <span class="m-icon">🏠</span>
+      <span class="m-label">Utama</span>
+    </button>
+    <button class="mobile-nav-btn" data-nav="classes" type="button">
+      <span class="m-icon">🏫</span>
+      <span class="m-label">Kelas</span>
+    </button>
+    <button class="mobile-nav-btn" data-nav="schedule" type="button">
+      <span class="m-icon">📋</span>
+      <span class="m-label">Jadual</span>
+    </button>
+    <button class="mobile-nav-btn" data-nav="assignments" type="button">
+      <span class="m-icon">💡</span>
+      <span class="m-label">PB</span>
+    </button>
+    <button class="mobile-nav-btn" data-nav="calendar" type="button">
+      <span class="m-icon">📅</span>
+      <span class="m-label">Takwim</span>
+    </button>
+    <button class="mobile-nav-btn" id="mobileMoreBtn" type="button">
+      <span class="m-icon">☰</span>
+      <span class="m-label">Menu</span>
+    </button>
+  </nav>
+</div>
+
+<div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+<iframe name="apiFrame" id="apiFrame" class="hidden"></iframe>
+<script src="assets/app.js"></script>
+</body>
+</html>
